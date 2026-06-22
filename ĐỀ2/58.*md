@@ -1,0 +1,99 @@
+## Câu hỏi 58
+
+---
+
+### 📋 NỘI DUNG CÂU HỎI (Tiếng Anh gốc)
+
+> A software company has resources hosted in AWS and on-premises servers. You have been requested to create a decoupled architecture for applications which make use of both resources.
+>
+> Which of the following options are valid? (Select TWO.)
+
+---
+
+### 🔤 DỊCH CHI TIẾT
+
+Một công ty phần mềm có tài nguyên trên cả **AWS** và **on-premises servers**. Yêu cầu tạo **decoupled architecture** (kiến trúc tách rời) cho các ứng dụng sử dụng cả hai loại tài nguyên này. Decoupled nghĩa là các thành phần có thể hoạt động **độc lập** với nhau — thành phần này fail không kéo theo thành phần kia.
+
+---
+
+### 🎯 PHÂN TÍCH YÊU CẦU CHÍNH
+
+Bài toán yêu cầu dịch vụ phải:
+
+1. **Hỗ trợ decoupled architecture** → message queue hoặc workflow coordination.
+2. **Hoạt động với cả on-premises lẫn EC2** → dịch vụ có thể được gọi từ bất kỳ đâu qua internet/API.
+
+---
+
+### 🔑 Decoupled Architecture là gì?
+
+```
+Coupled (tightly):           Decoupled (loosely):
+App A → App B               App A → [Queue/Workflow] → App B
+(A fail thì B cũng fail)    (A fail, B vẫn xử lý msgs trong queue)
+```
+
+Hai dịch vụ AWS chuyên cho decoupled architecture: **SQS** và **SWF**.
+
+---
+
+### 🔍 PHÂN TÍCH TỪNG ĐÁP ÁN
+
+✅ **Đáp án đúng 1: Amazon SQS.**
+
+- SQS là **message queue** — on-premises server gửi message vào queue, EC2 instance đọc và xử lý (hoặc ngược lại). ✅
+- Hai đầu hoàn toàn **độc lập** — sender và receiver không cần biết nhau, không cần online cùng lúc. ✅
+- Có thể gọi SQS API từ bất kỳ đâu: on-premises, EC2, Lambda... ✅
+
+---
+
+✅ **Đáp án đúng 2: Amazon SWF (Simple Workflow Service).**
+
+- SWF **phối hợp công việc** (coordinate work) giữa các distributed components — bao gồm cả on-premises và EC2. ✅
+- Cho phép tạo **workflow** với các tasks được thực hiện bởi workers ở bất kỳ đâu (on-premises hoặc cloud). ✅
+- Đảm bảo tasks được thực hiện đúng thứ tự, không bị mất, không bị thực hiện trùng lặp. ✅
+
+---
+
+❌ **Đáp án sai 1: Amazon RDS.**
+
+- RDS là **database service** — lưu trữ và truy vấn dữ liệu, không phải decoupling service. ✗
+- Không có cơ chế message queue hay workflow coordination. ✗
+
+---
+
+❌ **Đáp án sai 2: Amazon DynamoDB.**
+
+- DynamoDB là **NoSQL database service** — tương tự, không phải decoupling service. ✗
+- Không giải quyết bài toán tách rời các components. ✗
+
+---
+
+❌ **Đáp án sai 3: VPC Peering.**
+
+- **VPC Peering chỉ kết nối giữa hai VPC** — không thể peering với on-premises network. ✗
+- Để kết nối on-premises với VPC phải dùng **Site-to-Site VPN** hoặc **Direct Connect**. ✗
+- VPC Peering cũng không phải công cụ decoupling — chỉ là network connectivity. ✗
+
+---
+
+### 📊 KẾT LUẬN & BÀI HỌC
+
+| Dịch vụ | Decoupled? | On-premises + EC2? | Vai trò thực sự |
+|---|---|---|---|
+| **Amazon SQS** | ✅ | ✅ | Message queue, async messaging |
+| **Amazon SWF** | ✅ | ✅ | Workflow coordination across distributed components |
+| **RDS / DynamoDB** | ❌ | N/A | Database, không phải decoupling |
+| **VPC Peering** | ❌ | ❌ (không support on-premises) | Network connectivity giữa VPCs |
+
+💡 **Công thức ghi nhớ:**
+
+> "Decoupled architecture" → **SQS** (message queue) hoặc **SWF** (workflow)
+
+> **SQS** = async messaging, sender/receiver độc lập về thời gian
+
+> **SWF** = coordinate tasks theo thứ tự, track trạng thái workflow, workers ở bất kỳ đâu
+
+> **VPC Peering** = chỉ VPC-to-VPC, **không** connect on-premises → dùng VPN hoặc Direct Connect cho on-premises
+
+> SQS và SWF đều có thể gọi API từ on-premises qua internet → phù hợp cho hybrid architecture.

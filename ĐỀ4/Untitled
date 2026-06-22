@@ -1,0 +1,84 @@
+## Câu hỏi 64
+
+### 📋 NỘI DUNG CÂU HỎI
+
+> A technical lead of the Cloud Infrastructure team was consulted by a software developer regarding the required AWS resources of the web application that he is building. The developer knows that an Instance Store only provides ephemeral storage where the data is automatically deleted when the instance is terminated. To ensure that the data of the web application persists, the app should be launched in an EC2 instance that has a durable, block-level storage volume attached. The developer knows that they need to use an EBS volume, but they are not sure what type they need to use.
+>
+> In this scenario, which of the following is true about Amazon EBS volume types and their respective usage? **(Select TWO.)**
+
+---
+
+### 🔤 DỊCH CHI TIẾT
+
+Một developer đang xây dựng web application và biết rằng **Instance Store** chỉ cung cấp **ephemeral storage** (lưu trữ tạm thời — bị xóa khi instance bị terminate). Để đảm bảo dữ liệu tồn tại lâu dài, app cần chạy trên EC2 instance có đính kèm **durable, block-level storage volume** (lưu trữ bền vững cấp block). Developer biết cần dùng **EBS volume** nhưng chưa rõ nên dùng loại nào.
+
+Câu hỏi: **Phát biểu nào sau đây đúng về các loại EBS volume và cách dùng?** (Chọn 2.)
+
+---
+
+### 🎯 PHÂN TÍCH YÊU CẦU CHÍNH
+
+- Hiểu **sự khác biệt giữa các loại EBS volume**: General Purpose SSD, Provisioned IOPS SSD, Magnetic
+- Biết **use case phù hợp** cho từng loại
+- Nhận diện các **"bẫy"** — tên service không tồn tại hoặc đặc tính bị gán sai
+
+---
+
+### 🔍 PHÂN TÍCH TỪNG ĐÁP ÁN
+
+**✅ Provisioned IOPS volumes offer storage with consistent and low-latency performance, and are designed for I/O intensive applications such as large relational or NoSQL databases.**
+
+→ **ĐÚNG.** Đây là đặc tả chính xác của **Provisioned IOPS SSD (io1/io2)**. Loại này được thiết kế cho workload cần IOPS cao và ổn định — điển hình là database lớn (Oracle, MySQL, MongoDB...).
+
+---
+
+**❌ Spot volumes provide the lowest cost per gigabyte of all EBS volume types and are ideal for workloads where data is accessed infrequently...**
+
+→ **SAI.** Không có loại EBS nào tên là **"Spot volume"**. "Spot" là khái niệm của **EC2 Spot Instances** (mua instance giá rẻ theo thị trường), không liên quan đến loại EBS. Đây là câu bẫy đánh vào người nhầm lẫn giữa EC2 pricing model và EBS volume type.
+
+---
+
+**✅ Magnetic volumes provide the lowest cost per gigabyte of all EBS volume types and are ideal for workloads where data is accessed infrequently, and applications where the lowest storage cost is important.**
+
+→ **ĐÚNG.** **Magnetic volumes** (thế hệ cũ — Previous Generation) có chi phí thấp nhất per GB, phù hợp với workload truy cập không thường xuyên. Lưu ý: AWS đã ra hai loại HDD mới hơn là **Cold HDD (sc1)** và **Throughput Optimized HDD (st1)** nhưng Magnetic vẫn đúng theo mô tả này.
+
+---
+
+**❌ General Purpose SSD (gp3) volumes with multi-attach enabled offer consistent and low-latency performance, and are designed for applications requiring multi-az resiliency.**
+
+→ **SAI — hai lỗi trong một phát biểu:**
+1. **Multi-Attach** chỉ hỗ trợ **io1/io2 (Provisioned IOPS)**, **không hỗ trợ gp3**
+2. **Multi-Attach không cung cấp Multi-AZ resiliency** — nó chỉ cho phép gắn một EBS volume vào **nhiều instance trong cùng một AZ (Availability Zone)**
+
+---
+
+**❌ Single root I/O virtualization (SR-IOV) volumes are suitable for a broad range of workloads, including small to medium-sized databases, development and test environments, and boot volumes.**
+
+→ **SAI.** **SR-IOV** là công nghệ liên quan đến **Enhanced Networking** (mạng tốc độ cao) trên EC2, **không phải là loại EBS volume**. Phần mô tả "suitable for broad range of workloads... boot volumes" thực ra là của **General Purpose SSD (gp2/gp3)** — câu này cố tình gán đúng mô tả vào sai tên.
+
+---
+
+### 📊 KẾT LUẬN & BÀI HỌC
+
+| Loại EBS | Loại ổ | Use Case chính | Đặc điểm nổi bật |
+|---|---|---|---|
+| **General Purpose SSD (gp2/gp3)** | SSD | Boot volumes, dev/test, small-medium DB | Default choice, balanced price/performance |
+| **Provisioned IOPS SSD (io1/io2)** | SSD | Large DB, NoSQL, I/O intensive apps | IOPS cao & ổn định, hỗ trợ Multi-Attach |
+| **Throughput Optimized HDD (st1)** | HDD | Big Data, log processing, data warehouse | Throughput cao, chi phí thấp hơn SSD |
+| **Cold HDD (sc1)** | HDD | Infrequently accessed data, archive | Chi phí thấp nhất (thế hệ mới) |
+| **Magnetic (Standard)** | HDD | Infrequently accessed, lowest cost | Previous generation, chi phí thấp nhất lịch sử |
+
+**Bẫy thường gặp:**
+
+| Bẫy | Sự thật |
+|---|---|
+| "Spot volume" | Không tồn tại — Spot là EC2 pricing, không phải EBS type |
+| "gp3 hỗ trợ Multi-Attach" | Sai — chỉ io1/io2 mới hỗ trợ |
+| "Multi-Attach = Multi-AZ" | Sai — Multi-Attach chỉ trong **cùng 1 AZ** |
+| "SR-IOV = EBS volume type" | Sai — SR-IOV là Enhanced Networking, không liên quan EBS |
+
+> 💡 **Công thức ghi nhớ:**
+> - **Cần IOPS cao, ổn định** → **Provisioned IOPS (io1/io2)**
+> - **Cần chi phí thấp, ít truy cập** → **Magnetic** (cũ) hoặc **Cold HDD sc1** (mới)
+> - **Cần multi-attach** → chỉ **io1/io2**, và chỉ trong **cùng 1 AZ**
+> - **SR-IOV** = mạng nhanh (Enhanced Networking), **không phải EBS**
